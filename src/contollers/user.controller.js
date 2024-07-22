@@ -3,6 +3,8 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import CircularJSON from "circular-json";
+import { stringify, parse } from "flatted";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -14,7 +16,10 @@ const generateAccessAndRefreshTokens = async (userId) => {
 
     return { accessToken, refreshToken };
   } catch (error) {
-    throw new ApiError(500, "Something went wrong while generating tokens!");
+    throw new ApiError(
+      500,
+      "Something went wrong while generating tokens!" || error?.message
+    );
   }
 };
 
@@ -97,7 +102,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const { username, email, password } = req.body;
 
-  if (!username && !email) {
+  if (!(username || email)) {
     throw new ApiError(400, "Username or email is required!");
   }
 
@@ -115,17 +120,18 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Invalid User");
   }
 
-  const { refreshToken, accessToken } = await generateAccessAndRefreshTokens(
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
     user._id
   );
   const loggedInUser = User.findById(user._id).select(
     "-password -refreshToken"
   );
+
   const options = {
     httpOnly: true,
     secure: true,
   };
-
+  console.log(user);
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
@@ -134,11 +140,11 @@ const loginUser = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         {
-          user: loggedInUser,
+          user: parse(stringify(loggedInUser)),
           accessToken,
           refreshToken,
         },
-        "User logged in successfully"
+        "User logged In Successfully"
       )
     );
 });
