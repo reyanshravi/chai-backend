@@ -7,8 +7,8 @@ import {
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
-console.log("Environment variables:");
-console.log(process.env.CLOUDINARY_API_SECRET);
+// console.log("Environment variables:");
+// console.log(process.env.CLOUDINARY_API_SECRET);
 
 const router = Router();
 

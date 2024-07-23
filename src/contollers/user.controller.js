@@ -3,8 +3,6 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import CircularJSON from "circular-json";
-import { stringify, parse } from "flatted";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -123,7 +121,7 @@ const loginUser = asyncHandler(async (req, res) => {
   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
     user._id
   );
-  const loggedInUser = User.findById(user._id).select(
+  const loggedInUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
 
@@ -131,7 +129,10 @@ const loginUser = asyncHandler(async (req, res) => {
     httpOnly: true,
     secure: true,
   };
-  console.log(user);
+  // console.log(user);
+
+  // console.log(loggedInUser);
+  console.log(loggedInUser);
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
@@ -140,7 +141,7 @@ const loginUser = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         {
-          user: parse(stringify(loggedInUser)),
+          user: loggedInUser,
           accessToken,
           refreshToken,
         },
